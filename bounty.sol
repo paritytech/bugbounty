@@ -69,7 +69,8 @@ contract Bounty
     function withdraw(uint _amount) only_with_at_least(_amount) when_no_claim {
         Withdrawal(msg.sender, _amount);
         balance[msg.sender] -= _amount;
-        msg.sender.send(_amount);
+        if (!msg.sender.send(_amount))
+		throw;
     }
     
     /// Begin claim process; register `_claimant` as the beneficiary and the
@@ -84,8 +85,7 @@ contract Bounty
     /// and suicides.
     function payout() only_claimant after_payday {
         Payout(claimant, address(this).balance);
-        claimant.send(address(this).balance);
-        suicide(0);
+        suicide(claimant);
     }
     
     /// Cancel the claim by `claimant`.
